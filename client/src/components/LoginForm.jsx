@@ -2,7 +2,10 @@
 import { useState } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 
-import { loginUser } from '../utils/API';
+//need to use a mutation here for the login
+import { useMutation } from '@apollo/client';
+import { LOGIN_USER } from '../utils/mutations';
+
 import Auth from '../utils/auth';
 
 const LoginForm = () => {
@@ -13,6 +16,9 @@ const LoginForm = () => {
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setUserFormData({ ...userFormData, [name]: value });
+
+     // new mutation function from above
+    const [loginUser, { error }] = useMutation(LOGIN_USER);
   };
 
   const handleFormSubmit = async (event) => {
