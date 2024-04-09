@@ -1,6 +1,3 @@
-# book-search-engine
-
-
  # Book Search Engine
 
  
@@ -10,9 +7,7 @@ The Book Search Engine is a full-stack MERN application that uses GraphQL and th
  ## Table of Contents
  - [Installation](#installation)
  - [Usage](#usage)
- - [Contributing](#contributing)
- - [Tests](#tests)
- - [License](#license)
+ - [Demo](#demo)
  - [Questions](#questions)
 
 ## Installation
@@ -21,6 +16,10 @@ This application is deployed on Render. Nothing needs to be installed, just simp
 ## Usage
 Upon loading the application, users are presented with a search interface to look for books. Results from the Google Books API are displayed, each with options to view more details or save the book (for logged-in users). The navigation menu offers options to search for books, log in or sign up, view saved books, and log out.
 
+## Demo
+Below is an example of how the application looks:
+
+![View of the Book Search.](./client/dist/assets/search.png)
 
 
 
@@ -33,4 +32,4 @@ GitHub: [huntrreed](https://github.com/huntrreed)
 Email: huntrreed@gmail.com
 
 ### Deployed Link
-[Deployed Application Page](na)
+[Deployed Application Page](https://book-search-engine-zoyf.onrender.com/)
