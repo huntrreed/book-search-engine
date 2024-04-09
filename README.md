@@ -23,10 +23,6 @@ Upon loading the application, users are presented with a search interface to loo
 
 
 
-## Demo
-Below is a demonstration of the application.
-Click [here](no) for a demonstration of the application.
-
 
 ## Questions
 
