@@ -5,69 +5,72 @@ const { signToken } = require('../utils/auth');
 
 module.exports = {
   // get a single user by either their id or their username
-  async getSingleUser({ user = null, params }, res) {
-    const foundUser = await User.findOne({
-      $or: [{ _id: user ? user._id : params.id }, { username: params.username }],
-    });
+  async getSingleUser(req, res) {
+    // console.log(`req: ${req}`)
+    const foundUser = await User.findById(req);
 
     if (!foundUser) {
-      return res.status(400).json({ message: 'Cannot find a user with this id!' });
+      throw new Error('User not found');
     }
-
-    res.json(foundUser);
+    // console.log(`foundUser: ${foundUser}`);
+    return foundUser;
   },
   // create a user, sign a token, and send it back (to client/src/components/SignUpForm.js)
-  async createUser({ body }, res) {
-    const user = await User.create(body);
+  async createNewUser(req, res) {
+    // console.log(`req: ${req.username}, ${req.email}, ${req.password}`);
+    const user = await User.create(req);
 
     if (!user) {
-      return res.status(400).json({ message: 'Something is wrong!' });
+      throw new Error('User not created!');
     }
-    const token = signToken(user);
-    res.json({ token, user });
+    const token = signToken({ email: user.email, name: user.username, _id: user._id });
+    return { token, user };
   },
   // login a user, sign a token, and send it back (to client/src/components/LoginForm.js)
-  // {body} is destructured req.body
-  async login({ body }, res) {
-    const user = await User.findOne({ $or: [{ username: body.username }, { email: body.email }] });
+  // {req} is destructured req.req
+  async login(req, res) {
+    // console.log(`req: ${req.email}, ${req.password}`);
+    const user = await User.findOne({email: req.email})
     if (!user) {
-      return res.status(400).json({ message: "Can't find this user" });
+      throw new Error('User not found!');
     }
 
-    const correctPw = await user.isCorrectPassword(body.password);
+    const correctPw = await user.isCorrectPassword(req.password);
 
     if (!correctPw) {
-      return res.status(400).json({ message: 'Wrong password!' });
+      throw new Error('Incorrect credentials');
     }
-    const token = signToken(user);
-    res.json({ token, user });
+    const token = signToken({ email: user.email, name: user.username, _id: user._id });
+    // console.log(`token: ${token}, user: ${user}`)
+    return { token, user };
   },
   // save a book to a user's `savedBooks` field by adding it to the set (to prevent duplicates)
   // user comes from `req.user` created in the auth middleware function
-  async saveBook({ user, body }, res) {
-    console.log(user);
+  async saveBook({ user, book }, res) {
+    // console.log(user);
     try {
       const updatedUser = await User.findOneAndUpdate(
-        { _id: user._id },
-        { $addToSet: { savedBooks: body } },
+        { _id: user },
+        { $addToSet: { savedBooks: book } },
         { new: true, runValidators: true }
       );
-      return res.json(updatedUser);
+      return updatedUser;
     } catch (err) {
-      console.log(err);
-      return res.status(400).json(err);
+      // console.log(err);
+      throw new Error('Could not save book!');
     }
   },
   // remove a book from `savedBooks`
-  async deleteBook({ user, params }, res) {
+  async deleteBook({ user, bookId }, res) {
     const updatedUser = await User.findOneAndUpdate(
-      { _id: user._id },
-      { $pull: { savedBooks: { bookId: params.bookId } } },
+      { _id: user },
+      { $pull: { savedBooks: { bookId: bookId } } },
       { new: true }
     );
     if (!updatedUser) {
-      return res.status(404).json({ message: "Couldn't find user with this id!" });
+      throw new Error('Could not delete book');
     }
-    return res.json(updatedUser);
+    // console.log(`updatedUser: ${updatedUser}`);
+    return updatedUser;
   },
 };

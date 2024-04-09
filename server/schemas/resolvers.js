@@ -1,67 +1,44 @@
-const { AuthenticationError } = require('apollo-server-express');
-const { User } = require('../models');
-const { signToken } = require('../utils/auth');
+const {
+  createNewUser,
+  getSingleUser,
+  saveBook,
+  deleteBook,
+  login,
+} = require('../controllers/user-controller');
 
 
-
+const { AuthenticationError } = require('../utils/auth');
+const { authMiddleware } = require('../utils/auth');
 const resolvers = {
-    Query: {
-      me: async (_, args, context) => {
-        if (context.user) {
-          return User.findById(context.user._id);
-        }
-        throw new AuthenticationError('You need to be logged in!');
-      },
+  Query: {
+    me: async (_, userId, context) => {
+      // console.log(`context: ${userId._id}`);
+      
+      // Call the getSingleUser function from your controller
+      return getSingleUser(userId._id);
     },
-    Mutation: {
-      addUser: async (parent, args) => {
-        const user = await User.create(args);
-        const token = signToken(user);
-        return { token, user };
-      },
-      login: async (parent, { email, password }) => {
-        const user = await User.findOne({ email });
-  
-        if (!user) {
-          throw new AuthenticationError('Incorrect credentials');
-        }
-  
-        const correctPw = await user.isCorrectPassword(password);
-  
-        if (!correctPw) {
-          throw new AuthenticationError('Incorrect credentials');
-        }
+  },
+  Mutation: {
+    createUser: async (_, args) => {
+      // console.log(`args: ${args.username}, ${args.email}, ${args.password}`);
+      return createNewUser(args);
+    },
+    saveBook: async (_, { user, book }, context) => {
+      // console.log(`user: ${user}, book: ${book}`);
+      // Call the saveBook function from your controller
+      return saveBook({ user, book });
+    },
+    deleteBook: async (_, { user, bookId }, context) => {
+      // Check if the user is authenticated
+      
+      // Call the deleteBook function from your controller
+      return deleteBook({ user, bookId });
+    },
+    login: async (_, args) => {
+      // console.log(`args: ${args.email}, ${args.password}`);
+      return login(args);
+    },
+  },
+};
 
-        const token = signToken(user);
-        return { token, user };
-      },
-    
-       
-      
-          async saveBook(_, { bookData }, context) {
-            if (!context.user) {
-              throw new AuthenticationError('Not authenticated');
-            }
-            const updatedUser = await User.findByIdAndUpdate(
-              context.user._id,
-              { $addToSet: { savedBooks: bookData } },
-              { new: true }
-            );
-            return updatedUser;
-          },
-      
-          async removeBook(_, { bookId }, context) {
-            if (!context.user) {
-              throw new AuthenticationError('Not authenticated');
-            }
-            const updatedUser = await User.findByIdAndUpdate(
-              context.user._id,
-              { $pull: { savedBooks: { bookId } } },
-              { new: true }
-            );
-            return updatedUser;
-          },
-        },
-      };
-      
-      module.exports = resolvers;
+module.exports = resolvers;
